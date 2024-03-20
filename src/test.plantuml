@@ -1,0 +1,58 @@
+@startuml LaserTag
+state EtatLaserTag {
+    state choiceDemarrage <<choice>>
+    [*] -> Demarrage
+    Demarrage --> choiceDemarrage
+    choiceDemarrage --> ConfigurationGenerale : [Premier démarrage ou boutonJeu = 100]
+    ConfigurationGenerale --> choiceDemarrage  : [Configuration terminée]
+    choiceDemarrage --> AttentePilotage  : [modeFonctionnement = PilotageWifi]
+    choiceDemarrage --> ParametrageJeuManuelle : [modeFonctionnement = Autonome]
+    AttentePilotage --> JeuEnCours : [Pilotage déclenche partie]
+    ParametrageJeuManuelle --> JeuEnCours : [Action utilisateur déclenche partie]
+    JeuEnCours --> RecapitulatifJeu : [Fin du jeu]
+    RecapitulatifJeu --> choiceDemarrage
+
+
+    state ConfigurationGenerale {
+        state choiceModePilotage <<choice>>
+        [*] -> ChoixModePilotage
+        ChoixModePilotage --> choiceModePilotage
+        choiceModePilotage --> AttenteValidationWifi : [modeFonctionnement = PilotageWifi]
+        AttenteValidationWifi --> SaisieIpServeur : [ParamétrageBorne fait]
+        SaisieIpServeur --> AttenteServeurIn  : [IP ServeurJeu validée]
+        AttenteServeurIn --> [*] : [ServeurJeu a confirmé connexion]
+        choiceModePilotage --> ChoixEquipeDefaut : [modeFonctionnement = Autonome]
+        ChoixEquipeDefaut --> ChoixArmeDefaut : [Equipe choisie]
+        ChoixArmeDefaut --> ChoixNumDefaut : [Arme choisie]
+        ChoixNumDefaut -->  [*] : [Nom choisi]
+    }
+
+    state ParametrageJeuManuelle {
+        state choiceModeJeu <<choice>>
+        state choiceModeReaparition <<choice>>
+        [*] ->  rappelDernierJeu
+        rappelDernierJeu --> [*] : [Dernier jeu rappelé]
+        rappelDernierJeu --> choixModeJeu : [Nouveau jeu]
+        choixModeJeu --> choiceModeJeu
+        choiceModeJeu --> choixEquipe : [modeJeu = TeamFight]
+        choiceModeJeu --> choixArme : [modeJeu = FreeFight]
+        choixEquipe --> choixArme : [Equipe choisie]
+        choixArme --> choixNumJoueur : [Arme choisi]
+        choixNumJoueur --> choixModeReaparition : [Nom choisi]
+        choixModeReaparition --> choiceModeReaparition
+        choiceModeReaparition --> choixDuréeReaparition : [modeReaparition = infinie]
+        choiceModeReaparition --> choixNbReaparition : [modeReaparition = limitée\n || modeReaparition = limitéeParEquipe]
+        choixNbReaparition --> choixDuréeReaparition : [Nombre choisi]
+        choixDuréeReaparition --> choixDuréePartie : [Durée choisie]
+        choixDuréePartie -->  [*] : [Durée choisie]
+    }
+
+    state JeuEnCours {
+        [*] -> AttenteDémarrage
+        AttenteDémarrage --> JoueurEnVie : [Démarrage partie]
+        JoueurEnVie --> JoueurMort : [Joueur touché && réapparition possible && délai ok]
+        JoueurMort --> JoueurEnVie : [Joueur réapparu]
+        JoueurEnVie --> [*] : [Joueur touché && réapparition impossible]
+    }
+}
+@enduml
